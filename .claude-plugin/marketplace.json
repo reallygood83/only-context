@@ -1,0 +1,18 @@
+{
+  "name": "only-context",
+  "owner": {
+    "name": "reallygood83"
+  },
+  "metadata": {
+    "description": "Claude Code에 지속 가능한 프로젝트 컨텍스트를 구축하는 시스템",
+    "homepage": "https://github.com/reallygood83/only-context"
+  },
+  "plugins": [
+    {
+      "name": "only-context",
+      "version": "0.3.0",
+      "source": "./plugin",
+      "description": "세션 활동, 오류, 결정 및 패턴을 자동으로 캡처하여 탐색 가능하고 시각화 가능한 지식 베이스를 구축합니다."
+    }
+  ]
+}

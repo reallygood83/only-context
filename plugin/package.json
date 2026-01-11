@@ -1,0 +1,35 @@
+{
+  "name": "only-context",
+  "version": "0.3.0",
+  "description": "Claude Code에 지속 가능한 프로젝트 컨텍스트를 구축하는 시스템",
+  "type": "module",
+  "scripts": {
+    "build": "bun build src/mcp-server/index.ts --outdir dist/mcp-server --target bun",
+    "dev:mcp": "bun --watch src/mcp-server/index.ts",
+    "test": "bun test",
+    "setup": "bun src/cli/setup.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.3",
+    "@modelcontextprotocol/sdk": "^1.12.0",
+    "gray-matter": "^4.0.3",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.7.0"
+  },
+  "author": "reallygood83",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reallygood83/only-context"
+  },
+  "keywords": [
+    "claude-code",
+    "obsidian",
+    "memory",
+    "knowledge-base",
+    "mcp"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "only-context": {
+      "type": "stdio",
+      "command": "bun",
+      "args": ["run", "${CLAUDE_PLUGIN_ROOT}/src/mcp-server/index.ts"],
+      "env": {
+        "CONFIG_PATH": "${HOME}/.only-context/config.json"
+      }
+    }
+  }
+}

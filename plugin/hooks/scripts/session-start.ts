@@ -8,10 +8,15 @@ import type { SessionStartInput } from '../../src/shared/types.js';
 
 async function main() {
   try {
+    const config = loadConfig();
+
+    // Global toggle - exit immediately if disabled (0 tokens)
+    if (config.enabled === false) {
+      process.exit(0);
+    }
+
     // Read JSON input from stdin
     const input = await readStdinJson<SessionStartInput>();
-
-    const config = loadConfig();
 
     // Get project info from git or directory
     const project = await getProjectInfo(input.cwd);

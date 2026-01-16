@@ -4,6 +4,7 @@ import * as os from 'os';
 import type { Config } from './types.js';
 
 const DEFAULT_CONFIG: Config = {
+  enabled: true, // Global toggle - set to false to disable all hooks (0 tokens)
   vault: {
     path: path.join(os.homedir(), 'ObsidianVault'),
     memFolder: '_only-context',
@@ -125,6 +126,11 @@ export function sanitizeProjectName(name: string): string {
  */
 function deepMerge(target: Config, source: Partial<Config>): Config {
   const result = JSON.parse(JSON.stringify(target)) as Config;
+
+  // Global toggle
+  if (source.enabled !== undefined) {
+    result.enabled = source.enabled;
+  }
 
   if (source.vault) {
     result.vault = { ...result.vault, ...source.vault };

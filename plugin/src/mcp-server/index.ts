@@ -4,7 +4,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import * as z from 'zod';
 import { VaultManager } from './utils/vault.js';
-import { loadConfig } from '../shared/config.js';
+import { loadConfig, saveConfig, clearConfigCache } from '../shared/config.js';
 import type { SearchResult, ProjectContext, Note } from '../shared/types.js';
 
 type TextContent = { type: 'text'; text: string };
@@ -288,6 +288,118 @@ async function main() {
       } catch (error) {
         return {
           content: [{ type: 'text', text: `Failed to list projects: ${error}` }],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  // Tool: mem_toggle - Toggle the plugin on/off
+  server.registerTool(
+    'mem_toggle',
+    {
+      title: 'Toggle Memory System',
+      description: 'Enable or disable the entire only-context memory system. When disabled, all hooks exit immediately (0 tokens consumed). Use "on" to enable, "off" to disable, or omit to check current status.',
+      inputSchema: {
+        action: z.enum(['on', 'off', 'status']).optional().describe('Action: "on" to enable, "off" to disable, "status" to check (default: status)'),
+      },
+    },
+    async ({ action }): Promise<ToolResult> => {
+      try {
+        // Clear cache to get fresh config
+        clearConfigCache();
+        const config = loadConfig();
+
+        if (!action || action === 'status') {
+          const status = config.enabled !== false ? 'ENABLED' : 'DISABLED';
+          const statusEmoji = config.enabled !== false ? '🟢' : '🔴';
+          return {
+            content: [{
+              type: 'text',
+              text: `## Memory System Status\n\n${statusEmoji} **${status}**\n\nUse \`mem_toggle on\` or \`mem_toggle off\` to change.`
+            }],
+          };
+        }
+
+        const newEnabled = action === 'on';
+        config.enabled = newEnabled;
+        saveConfig(config);
+
+        // Clear cache so hooks pick up the change
+        clearConfigCache();
+
+        const statusEmoji = newEnabled ? '🟢' : '🔴';
+        const statusText = newEnabled ? 'ENABLED' : 'DISABLED';
+        const effectText = newEnabled
+          ? 'All hooks are now active. Context injection and summarization will work normally.'
+          : 'All hooks now exit immediately. No tokens will be consumed.';
+
+        return {
+          content: [{
+            type: 'text',
+            text: `## Memory System ${statusText}\n\n${statusEmoji} **${statusText}**\n\n${effectText}`
+          }],
+        };
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `Failed to toggle: ${error}` }],
+          isError: true,
+        };
+      }
+    }
+  );
+
+  // Tool: mem_status - Get detailed status of memory system
+  server.registerTool(
+    'mem_status',
+    {
+      title: 'Memory System Status',
+      description: 'Get detailed status of the only-context memory system including configuration and statistics.',
+      inputSchema: {},
+    },
+    async (): Promise<ToolResult> => {
+      try {
+        clearConfigCache();
+        const config = loadConfig();
+        const projects = await vault.listProjects();
+
+        const enabledStatus = config.enabled !== false ? '🟢 Enabled' : '🔴 Disabled';
+        const contextStatus = config.contextInjection.enabled ? '✅' : '❌';
+        const summaryStatus = config.summarization.enabled ? '✅' : '❌';
+
+        const lines = [
+          '## only-context Status',
+          '',
+          `**Global**: ${enabledStatus}`,
+          '',
+          '### Features',
+          `- Context Injection: ${contextStatus} (max ${config.contextInjection.maxTokens} tokens)`,
+          `- Summarization: ${summaryStatus} (model: ${config.summarization.model})`,
+          `- Recent Sessions: ${config.contextInjection.includeRecentSessions}`,
+          `- Include Errors: ${config.contextInjection.includeRelatedErrors ? '✅' : '❌'}`,
+          `- Include Patterns: ${config.contextInjection.includeProjectPatterns ? '✅' : '❌'}`,
+          '',
+          '### Capture',
+          `- File Edits: ${config.capture.fileEdits ? '✅' : '❌'}`,
+          `- Bash Commands: ${config.capture.bashCommands ? '✅' : '❌'}`,
+          `- Bash Output: ${config.capture.bashOutput.enabled ? '✅' : '❌'} (max ${config.capture.bashOutput.maxLength} chars)`,
+          `- Errors: ${config.capture.errors ? '✅' : '❌'}`,
+          '',
+          '### Projects',
+          `Tracked: ${projects.length}`,
+          projects.length > 0 ? projects.map(p => `- ${p}`).join('\n') : '_No projects yet_',
+          '',
+          '### Quick Commands',
+          '- `mem_toggle off` - Disable (0 tokens)',
+          '- `mem_toggle on` - Enable',
+        ];
+
+        return {
+          content: [{ type: 'text', text: lines.join('\n') }],
+        };
+      } catch (error) {
+        return {
+          content: [{ type: 'text', text: `Failed to get status: ${error}` }],
           isError: true,
         };
       }

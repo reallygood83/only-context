@@ -20,8 +20,14 @@ import * as crypto from 'crypto';
 
 async function main() {
   try {
-    const input = await readStdinJson<PostToolUseInput>();
     const config = loadConfig();
+
+    // Global toggle - exit immediately if disabled (0 tokens)
+    if (config.enabled === false) {
+      process.exit(0);
+    }
+
+    const input = await readStdinJson<PostToolUseInput>();
 
     // Validate session_id from input
     if (!input.session_id) {

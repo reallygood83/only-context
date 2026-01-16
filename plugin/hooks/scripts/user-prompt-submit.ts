@@ -20,8 +20,14 @@ interface UserPromptSubmitInput {
 
 async function main() {
   try {
-    const input = await readStdinJson<UserPromptSubmitInput>();
     const config = loadConfig();
+
+    // Global toggle - exit immediately if disabled (0 tokens)
+    if (config.enabled === false) {
+      process.exit(0);
+    }
+
+    const input = await readStdinJson<UserPromptSubmitInput>();
 
     // Validate session
     if (!input.session_id || !input.prompt) {

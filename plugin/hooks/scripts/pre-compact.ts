@@ -28,8 +28,14 @@ interface PreCompactInput {
 
 async function main() {
   try {
-    const input = await readStdinJson<PreCompactInput>();
     const config = loadConfig();
+
+    // Global toggle - exit immediately if disabled (0 tokens)
+    if (config.enabled === false) {
+      process.exit(0);
+    }
+
+    const input = await readStdinJson<PreCompactInput>();
 
     // Skip if summarization is disabled
     if (!config.summarization.enabled) {

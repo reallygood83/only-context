@@ -3,6 +3,8 @@
  */
 
 export interface Config {
+  /** Global toggle - when false, all hooks exit immediately (0 tokens) */
+  enabled: boolean;
   vault: {
     path: string;
     memFolder: string;

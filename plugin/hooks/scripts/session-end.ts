@@ -22,11 +22,17 @@ import type { SessionEndInput, Session, Observation } from '../../src/shared/typ
 
 async function main() {
   try {
+    const config = loadConfig();
+
+    // Global toggle - exit immediately if disabled (0 tokens)
+    if (config.enabled === false) {
+      process.exit(0);
+    }
+
     const args = process.argv.slice(2);
     const endType = (args.find(a => a.startsWith('--type='))?.split('=')[1] || 'end') as 'stop' | 'end';
 
     const input = await readStdinJson<SessionEndInput>();
-    const config = loadConfig();
 
     // Validate session_id from input
     if (!input.session_id) {
